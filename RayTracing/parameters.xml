@@ -3,5 +3,5 @@
     <modelFileName>./Models/ex_02___skybox_with_direction_labels.model</modelFileName>
     <saveImagePath>./</saveImagePath>
     <depthOfRayTracing>6</depthOfRayTracing>
-    <exercise>EX_1_2_Colors_Color_space</exercise>
+    <exercise>EX_1_1_Colors_Random_color</exercise>
 </parameters>
