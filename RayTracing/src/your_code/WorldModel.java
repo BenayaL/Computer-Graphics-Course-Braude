@@ -80,11 +80,15 @@ public class WorldModel {
 		if (exercise == ExerciseEnum.EX_0___Starting_point)
 			return new Vector3f(0);
 		else if (exercise == ExerciseEnum.EX_1_0_Colors_one_color) {
-			return new Vector3f(0);			
+			return new Vector3f(1,1,0);		
 		} else if (exercise == ExerciseEnum.EX_1_1_Colors_Random_color) {
-			return new Vector3f(0);			
+			return new Vector3f((float)(Math.random()),(float)(Math.random()),(float)(Math.random()));			
 		} else if (exercise == ExerciseEnum.EX_1_2_Colors_Color_space) {
-			return new Vector3f(0);			
+			Matrix3f m = new Matrix3f(
+			        -1f / (imageWidth - 1), -1f / (imageHeight - 1), 1f,
+			         1f / (imageWidth - 1), 0f, 0f,
+			         0f, 1f / (imageHeight - 1), 0f ).transpose();
+			return m.transform(new Vector3f(x, y, 1));
 		} else if (exercise == ExerciseEnum.EX_1_3_Colors_linear) {
 			return new Vector3f(0);			
 		} else {
