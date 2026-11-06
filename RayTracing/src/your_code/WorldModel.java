@@ -122,7 +122,17 @@ public class WorldModel {
 	 * @param fovXdegree The horizontal field of view in degrees.
 	 * @return The normalized direction vector of the ray for the given pixel. */	
 	static Vector3f calcPixelDirection(int x, int y, int imageWidth, int imageHeight, float fovXdegree) {
-      return new Vector3f(0);
+		//X calculation:
+		float fovX= fovXdegree*((float)Math.PI/180); //convert to radians
+		float xDelta = (2*(float)Math.tan((double)fovX/2))/(imageWidth-1);
+		float xLeft = -(float)Math.tan((double)fovX/2);
+		//Y calculation:
+		float fovY = fovX / imageWidth * imageHeight;
+		float yDelta = (2*(float)Math.tan((double)fovY/2))/(imageHeight-1);
+		float yBottom = -(float)Math.tan((double)fovY/2);
+		//calculate the direction vector and normalize it:
+		Vector3f directionVector = new Vector3f(xLeft+x*xDelta,yBottom+y*yDelta,-1f).normalize();
+      return directionVector;
 	}
 
 
