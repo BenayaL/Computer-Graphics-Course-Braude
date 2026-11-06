@@ -92,7 +92,9 @@ public class WorldModel {
 		} else if (exercise == ExerciseEnum.EX_1_3_Colors_linear) {
 			return new Vector3f(0);			
 		} else {
-			return new Vector3f(0);			
+			Vector3f pixelDirectionVector = calcPixelDirection(x,y,imageWidth , imageHeight, model.fovXdegree);
+			Vector3f returnedColor = rayTracing(new Vector3f(0, 0, 0), pixelDirectionVector, model, skyBoxImageSphereTexture, 0);
+			return returnedColor;			
 		}
 	}
 
@@ -105,12 +107,8 @@ public class WorldModel {
 	 * @return The calculated color for the pixel based on ray tracing and lighting effects. */	
 	private static Vector3f rayTracing(Vector3f incidentRayOrigin, Vector3f incidentRayDirection, Model model,
 			SphereTexture skyBoxImageSphereTexture, int depthLevel) {
-
-		Vector3f returnedColor = new Vector3f();
-
-		
-
-		return returnedColor;
+		//Vector3f returnedColor = new Vector3f();
+		return skyBoxImageSphereTexture.sampleDirectionFromMiddle(incidentRayDirection);
 	}
 
 	
