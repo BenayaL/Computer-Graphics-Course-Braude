@@ -117,11 +117,13 @@ public class WorldModel {
 			Vector3f intersectionNormal = result.normal;
 			boolean intersectionFromOutsideOfSphere = result.rayFromOutsideOfSphere;
 			SphereTexture intersectedSphereTexture = model.skyBoxImageSphereTextures.get(intersectedSphere.textureIndex);
+			Vector3f color = intersectedSphereMaterial.color;
+			float kColor = intersectedSphereMaterial.kColor;
+			return returnedColor.add(new Vector3f(color).mul(kColor)); // add the color dot kcolor vector to the returned color vector
 		}
 		else {
 			return skyBoxImageSphereTexture.sampleDirectionFromMiddle(incidentRayDirection);
 		}
-		return returnedColor;
 	}
 
 	
@@ -207,8 +209,13 @@ public class WorldModel {
 	 * @param spheres The list of spheres to check for intersections.
 	 * @return An IntersectionResults object containing information about the nearest intersection,
 	 *         or an empty IntersectionResults object if no intersection occurs. */	
-	private static IntersectionResults rayIntersection(Vector3f rayStart, Vector3f rayDirection,
-			List<ModelSphere> spheres) {
+	private static IntersectionResults rayIntersection(Vector3f rayStart, Vector3f rayDirection,List<ModelSphere> spheres) {
+		for( int i=0; i < spheres.size() ; i++) {
+			IntersectionResults res = rayIntersection(rayStart,rayDirection,spheres.get(i));
+			if (res != null) {
+				return res;
+			}
+		}
 		return null;
 	}
 
