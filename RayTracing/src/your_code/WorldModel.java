@@ -107,8 +107,21 @@ public class WorldModel {
 	 * @return The calculated color for the pixel based on ray tracing and lighting effects. */	
 	private static Vector3f rayTracing(Vector3f incidentRayOrigin, Vector3f incidentRayDirection, Model model,
 			SphereTexture skyBoxImageSphereTexture, int depthLevel) {
-		//Vector3f returnedColor = new Vector3f();
-		return skyBoxImageSphereTexture.sampleDirectionFromMiddle(incidentRayDirection);
+		
+		Vector3f returnedColor = new Vector3f();
+		IntersectionResults result = rayIntersection(incidentRayOrigin, incidentRayDirection, model.spheres.get(0));
+		if (result != null) {
+			ModelSphere intersectedSphere = result.intersectedSphere;
+			ModelMaterial intersectedSphereMaterial = model.materials.get(intersectedSphere.materialIndex);
+			Vector3f intersectionPoint = result.intersectionPoint;
+			Vector3f intersectionNormal = result.normal;
+			boolean intersectionFromOutsideOfSphere = result.rayFromOutsideOfSphere;
+			SphereTexture intersectedSphereTexture = model.skyBoxImageSphereTextures.get(intersectedSphere.textureIndex);
+		}
+		else {
+			return skyBoxImageSphereTexture.sampleDirectionFromMiddle(incidentRayDirection);
+		}
+		return returnedColor;
 	}
 
 	
