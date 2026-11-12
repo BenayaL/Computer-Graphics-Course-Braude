@@ -1,8 +1,10 @@
+
 package your_code;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.joml.Math;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
@@ -85,9 +87,9 @@ public class WorldModel {
 			return new Vector3f((float)(Math.random()),(float)(Math.random()),(float)(Math.random()));			
 		} else if (exercise == ExerciseEnum.EX_1_2_Colors_Color_space) {
 			Matrix3f m = new Matrix3f(
-			        -1f / (imageWidth - 1), -1f / (imageHeight - 1), 1f,
-			         1f / (imageWidth - 1), 0f, 0f,
-			         0f, 1f / (imageHeight - 1), 0f ).transpose();
+			        -1f/(imageWidth-1),-1f/(imageHeight-1),1f,
+			         1f/(imageWidth-1),0f,0f,
+			         0f,1f/(imageHeight-1),0f).transpose();
 			return m.transform(new Vector3f(x, y, 1));
 		} else if (exercise == ExerciseEnum.EX_1_3_Colors_linear) {
 			return new Vector3f(0);			
@@ -109,7 +111,7 @@ public class WorldModel {
 			SphereTexture skyBoxImageSphereTexture, int depthLevel) {
 		
 		Vector3f returnedColor = new Vector3f();
-		IntersectionResults result = rayIntersection(incidentRayOrigin, incidentRayDirection, model.spheres.get(0));
+		IntersectionResults result = rayIntersection(incidentRayOrigin, incidentRayDirection, model.spheres);
 		if (result != null) {
 			ModelSphere intersectedSphere = result.intersectedSphere;
 			ModelMaterial intersectedSphereMaterial = model.materials.get(intersectedSphere.materialIndex);
@@ -210,13 +212,18 @@ public class WorldModel {
 	 * @return An IntersectionResults object containing information about the nearest intersection,
 	 *         or an empty IntersectionResults object if no intersection occurs. */	
 	private static IntersectionResults rayIntersection(Vector3f rayStart, Vector3f rayDirection,List<ModelSphere> spheres) {
+		IntersectionResults closestResult = null;
 		for( int i=0; i < spheres.size() ; i++) {
 			IntersectionResults res = rayIntersection(rayStart,rayDirection,spheres.get(i));
 			if (res != null) {
-				return res;
+				float distance = rayStart.distance(res.intersectionPoint);
+				if (closestResult == null ||
+						rayStart.distance(res.intersectionPoint) < rayStart.distance(closestResult.intersectionPoint)) {
+					closestResult = res;
+					}
 			}
 		}
-		return null;
+		return closestResult;
 	}
 
 	
