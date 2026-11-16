@@ -121,7 +121,13 @@ public class WorldModel {
 			SphereTexture intersectedSphereTexture = model.skyBoxImageSphereTextures.get(intersectedSphere.textureIndex);
 			Vector3f color = intersectedSphereMaterial.color;
 			float kColor = intersectedSphereMaterial.kColor;
-			return returnedColor.add(new Vector3f(color).mul(kColor)); // add the color dot kcolor vector to the returned color vector
+			returnedColor.add(new Vector3f(color).mul(kColor));// add the color dot kcolor vector to the returned color vector
+			Vector3f lightVector =new Vector3f(lightingEquation(intersectionPoint, intersectionNormal, 
+					model.lights.get(0).location, intersectedSphereMaterial.kd,
+					intersectedSphereMaterial.ks, intersectedSphereMaterial.ka,
+					intersectedSphereMaterial.shininess));
+			returnedColor.add(lightVector.mul(intersectedSphereMaterial.kDirect));
+			return returnedColor;
 		}
 		else {
 			return skyBoxImageSphereTexture.sampleDirectionFromMiddle(incidentRayDirection);
@@ -238,10 +244,10 @@ public class WorldModel {
 	 * @return The calculated lighting as a Vector3f representing color. */	
 	static Vector3f lightingEquation(Vector3f point, Vector3f PointNormal, Vector3f LightPos, Vector3f Kd,
 			Vector3f Ks, Vector3f Ka, float shininess) {
-
-		Vector3f returnedColor = new Vector3f();
-
-
+		Vector3f L = new Vector3f(LightPos).sub(point); //calculate the Light source vector. L=s-p
+		L.normalize();//normalize to find the location.
+		Vector3f diffLight = new Vector3f(Kd).mul(Math.max(0,PointNormal.dot(L))); //calculate diffuse lighting according to the formula from lecture.
+		Vector3f returnedColor = new Vector3f(diffLight); //return the diffLight color vector.
 		return returnedColor;
 	}
 
