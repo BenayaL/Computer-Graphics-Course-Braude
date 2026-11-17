@@ -121,12 +121,15 @@ public class WorldModel {
 			SphereTexture intersectedSphereTexture = model.skyBoxImageSphereTextures.get(intersectedSphere.textureIndex);
 			Vector3f color = intersectedSphereMaterial.color;
 			float kColor = intersectedSphereMaterial.kColor;
+			Vector3f point =result.intersectionPoint;
+			Vector3f pointNormal =result.normal;
+			Vector3f lightLocation= model.lights.get(0).location;
 			returnedColor.add(new Vector3f(color).mul(kColor));// add the color dot kcolor vector to the returned color vector
-			Vector3f lightVector =new Vector3f(lightingEquation(intersectionPoint, intersectionNormal, 
-					model.lights.get(0).location, intersectedSphereMaterial.kd,
+			Vector3f lightVector =new Vector3f(lightingEquation(point, pointNormal, 
+					lightLocation, intersectedSphereMaterial.kd,
 					intersectedSphereMaterial.ks, intersectedSphereMaterial.ka,
 					intersectedSphereMaterial.shininess));
-			returnedColor.add(lightVector.mul(intersectedSphereMaterial.kDirect));
+			returnedColor.add(lightVector.mul(intersectedSphereMaterial.kDirect)); //add the color with light.
 			return returnedColor;
 		}
 		else {
@@ -246,8 +249,14 @@ public class WorldModel {
 			Vector3f Ks, Vector3f Ka, float shininess) {
 		Vector3f L = new Vector3f(LightPos).sub(point); //calculate the Light source vector. L=s-p
 		L.normalize();//normalize to find the location.
+		Vector3f R = new Vector3f(PointNormal).mul(2*(PointNormal.dot(L))).sub(L);
+		Vector3f V = new Vector3f(point).mul(-1);
+		V.normalize();
 		Vector3f diffLight = new Vector3f(Kd).mul(Math.max(0,PointNormal.dot(L))); //calculate diffuse lighting according to the formula from lecture.
-		Vector3f returnedColor = new Vector3f(diffLight); //return the diffLight color vector.
+		float dotRV = Math.max(0.0f, R.dot(V));
+		float specFactor = (float) java.lang.Math.pow(dotRV, shininess); 
+		Vector3f specLight = new Vector3f(Ks).mul(specFactor);
+		Vector3f returnedColor = new Vector3f(diffLight).add(Ka).add(specLight); //return the diffLight color vector.
 		return returnedColor;
 	}
 
