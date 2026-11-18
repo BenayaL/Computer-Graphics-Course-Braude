@@ -125,8 +125,10 @@ public class WorldModel {
 			Vector3f pointNormal =result.normal;
 			Vector3f lightLocation= model.lights.get(0).location;
 			returnedColor.add(new Vector3f(color).mul(kColor));// add the color dot kcolor vector to the returned color vector
+			Vector3f combinedKd = calcKdCombinedWithTexture(intersectionPoint,intersectedSphere.center,intersectedSphereTexture,
+					intersectedSphereMaterial.kd,intersectedSphereMaterial.kTexture);
 			Vector3f lightVector =new Vector3f(lightingEquation(point, pointNormal, 
-					lightLocation, intersectedSphereMaterial.kd,
+					lightLocation,combinedKd,
 					intersectedSphereMaterial.ks, intersectedSphereMaterial.ka,
 					intersectedSphereMaterial.shininess));
 			returnedColor.add(lightVector.mul(intersectedSphereMaterial.kDirect)); //add the color with light.
@@ -253,7 +255,7 @@ public class WorldModel {
 		Vector3f V = new Vector3f(point).mul(-1);
 		V.normalize();
 		Vector3f diffLight = new Vector3f(Kd).mul(Math.max(0,PointNormal.dot(L))); //calculate diffuse lighting according to the formula from lecture.
-		float dotRV = Math.max(0.0f, R.dot(V));
+		float dotRV = Math.max(0,R.dot(V));
 		float specFactor = (float) java.lang.Math.pow(dotRV, shininess); 
 		Vector3f specLight = new Vector3f(Ks).mul(specFactor);
 		Vector3f returnedColor = new Vector3f(diffLight).add(Ka).add(specLight); //return the diffLight color vector.
@@ -279,8 +281,10 @@ public class WorldModel {
 			SphereTexture intersectedSphereTexture,
 			Vector3f intersectedSphereKd,
 			float kTexture) {
-
-		return null;
+		Vector3f directionVector = new Vector3f(intersectionPoint).sub(intersectedSphereCenter);
+		Vector3f intersectionTextureColor = intersectedSphereTexture.sampleDirectionFromMiddle(directionVector);
+		Vector3f Kdt = new Vector3f(intersectedSphereKd).mul(1-kTexture).add(new Vector3f(intersectionTextureColor).mul(kTexture));
+		return Kdt;
 	}	
 
 
