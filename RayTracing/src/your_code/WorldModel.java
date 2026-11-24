@@ -109,7 +109,9 @@ public class WorldModel {
 	 * @return The calculated color for the pixel based on ray tracing and lighting effects. */	
 	private static Vector3f rayTracing(Vector3f incidentRayOrigin, Vector3f incidentRayDirection, Model model,
 			SphereTexture skyBoxImageSphereTexture, int depthLevel) {
-		
+		if (depthLevel == depthOfRayTracing) {
+		    return new Vector3f(0, 0, 0);
+		}
 		Vector3f returnedColor = new Vector3f();
 		IntersectionResults result = rayIntersection(incidentRayOrigin, incidentRayDirection, model.spheres);
 		if (result != null) {
@@ -121,18 +123,29 @@ public class WorldModel {
 			SphereTexture intersectedSphereTexture = model.skyBoxImageSphereTextures.get(intersectedSphere.textureIndex);
 			Vector3f color = intersectedSphereMaterial.color;
 			float kColor = intersectedSphereMaterial.kColor;
-			Vector3f point =result.intersectionPoint;
-			Vector3f pointNormal =result.normal;
 			Vector3f lightLocation= model.lights.get(0).location;
 			returnedColor.add(new Vector3f(color).mul(kColor));// add the color dot kcolor vector to the returned color vector
 			Vector3f combinedKd = calcKdCombinedWithTexture(intersectionPoint,intersectedSphere.center,intersectedSphereTexture,
 					intersectedSphereMaterial.kd,intersectedSphereMaterial.kTexture);
-			Vector3f lightVector =new Vector3f(lightingEquation(point, pointNormal, 
+			boolean shadow = isPointInShadow(lightLocation, intersectionPoint, intersectionNormal, model);
+			Vector3f lightVector =new Vector3f(lightingEquation(intersectionPoint, intersectionNormal, 
 					lightLocation,combinedKd,
 					intersectedSphereMaterial.ks, intersectedSphereMaterial.ka,
 					intersectedSphereMaterial.shininess));
-			returnedColor.add(lightVector.mul(intersectedSphereMaterial.kDirect)); //add the color with light.
-			return returnedColor;
+			if (!shadow) {
+			    returnedColor.add(lightVector.mul(intersectedSphereMaterial.kDirect));
+			} else {
+			    lightVector = lightingEquation(intersectionPoint, 
+			    		intersectionNormal,lightLocation
+			    		,new Vector3f(0, 0, 0), new Vector3f(0, 0, 0),
+			        intersectedSphereMaterial.ka,
+			        intersectedSphereMaterial.shininess);
+			    returnedColor.add( lightVector.mul(intersectedSphereMaterial.kDirect));
+			}
+			Vector3f reflectedColor = calcReflectedLight(incidentRayDirection, intersectionPoint,
+				    intersectionNormal,model,skyBoxImageSphereTexture,depthLevel);
+				returnedColor.add(reflectedColor.mul(intersectedSphereMaterial.kReflection));
+				return returnedColor;
 		}
 		else {
 			return skyBoxImageSphereTexture.sampleDirectionFromMiddle(incidentRayDirection);
@@ -301,11 +314,14 @@ public class WorldModel {
 	 * @param model the {@link Model} representing the scene, containing the objects (e.g., spheres) to check for intersection.
 	 * @return {@code true} if the point is in shadow (i.e., the shadow ray intersects with any objects), {@code false} otherwise.
 	 */
-	static boolean isPointInShadow(
-			Vector3f lightLocation,
-			Vector3f point,
-			Vector3f pointNormal,
-			Model model) {
+	static boolean isPointInShadow(Vector3f lightLocation,Vector3f point,Vector3f pointNormal,Model model) {
+		Vector3f  lightLocationDirct = new Vector3f(lightLocation).sub(point);
+		lightLocationDirct.normalize();
+		Vector3f p = new Vector3f(pointNormal).mul((float) 0.05).add(point);
+		IntersectionResults res = rayIntersection(p,lightLocationDirct,model.spheres);
+		if (res != null) {
+			return true;
+		}
 		return false;
 	}	
 
@@ -333,8 +349,12 @@ public class WorldModel {
 	                                   Model model, 
 	                                   SphereTexture skyBoxImageSphereTexture, 
 	                                   int depthLevel) {
-
-		return null;
+		Vector3f reflectionRay = new Vector3f(incidentRayDirection);
+		float dot = incidentRayDirection.dot(intersectionNormal);
+		reflectionRay.sub(new Vector3f(intersectionNormal).mul(2*dot));
+		Vector3f p = new Vector3f(intersectionNormal).mul((float) 0.05).add(intersectionPoint);
+		Vector3f reflectedColor = rayTracing(p,reflectionRay,model,skyBoxImageSphereTexture,depthLevel+1);
+		return reflectedColor;
 	}
 
 	
